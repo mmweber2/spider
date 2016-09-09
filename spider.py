@@ -1,5 +1,6 @@
 import urllib2
+from bs4 import BeautifulSoup
 
-response = urllib2.urlopen('http://www.google.com')
-html = response.read()
-print html
+html = urllib2.urlopen('http://www.pokeai.net/toz/dialga').read()
+soup = BeautifulSoup(html, 'lxml')
+print soup.get_text()
