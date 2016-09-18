@@ -31,16 +31,6 @@ class Spider(object):
         # Track results as a dict, but return a list
         self.results = {}
 
-    def crawl(self):
-        """Crawls the web, following all discovered links.
-
-        Beginning with this Spider's start_page, creates a Page object for each
-        web page visited, and traverses all links found until this Spider's
-        max_links is reached or the Spider runs out of unvisited links.
-        """
-
-
-
     def _parse_page(url):
         """Creates a new Page by retrieving and parsing the given url."""
         html = urllib2.urlopen(url).read()
@@ -49,8 +39,22 @@ class Spider(object):
         links = [link.get('href') for link in soup('a')]
         return Page(url, soup.get_text(), links)
 
+    def crawl(self):
+        """Crawls the web, following all discovered links.
 
-
+        Beginning with this Spider's start_page, creates a Page object for each
+        web page visited, and traverses all links found until this Spider's
+        max_links is reached or the Spider runs out of unvisited links.
+        """
+        while len(self.results) <= self.max_links and len(self.queue) > 0:
+            current = self.queue.pop(0)
+            # TODO: Check for very similar URLs, such as / endings or www/non
+            if current in self.results:
+                continue
+            page = _parse_page(current)
+            self.results[page.url] = page
+            queue.extend[p for p in page.links if p not in self.results]
+        # TODO: Store page data in database
 
 class Page(object):
     """Represents a single web page."""
