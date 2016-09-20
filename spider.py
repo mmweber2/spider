@@ -12,25 +12,21 @@ class Spider(object):
     def __init__(self, start_page, max_links=200):
         """Creates a new web Spider.
 
+        Once a Spider is created, use crawl() to gather web pages.
+
         Args:
             start_page: string, the URL of the page from which to begin
-                crawling. This page is included in the captured results.
+                crawling. Must begin with http or https.
+                This page is included in the captured results.
 
-            max_links: integer, the maximum number of unique URL links
-                to traverse (across all domains) before stopping.
-                Does not include start_page, so if max_links is 20,
-                the results will contain up to 21 pages. 
-
-                Defaults to 200.
-
-        Returns:
-            A list of Page objects of the visited web pages.
+        Raises:
+            ValueError: start page is not a valid URL.
         """
         self.queue = [start_page]
-        self.max_links = max_links
         # Track results as a dict, but return a list
         self.results = {}
 
+    @staticmethod
     def _parse_page(url):
         """Creates a new Page by retrieving and parsing the given url."""
         html = urllib2.urlopen(url).read()
@@ -39,21 +35,26 @@ class Spider(object):
         links = [link.get('href') for link in soup('a')]
         return Page(url, soup.get_text(), links)
 
-    def crawl(self):
+    def crawl(self, max_links=200):
         """Crawls the web, following all discovered links.
 
         Beginning with this Spider's start_page, creates a Page object for each
         web page visited, and traverses all links found until this Spider's
         max_links is reached or the Spider runs out of unvisited links.
+
+        Returns:
+            A list of Page objects of the visited web pages, including the
+                start page.
         """
-        while len(self.results) <= self.max_links and len(self.queue) > 0:
+        while len(self.results) <= max_links and len(self.queue) > 0:
             current = self.queue.pop(0)
             # TODO: Check for very similar URLs, such as / endings or www/non
             if current in self.results:
                 continue
-            page = _parse_page(current)
+            page = Spider._parse_page(current)
             self.results[page.url] = page
-            queue.extend[p for p in page.links if p not in self.results]
+            self.queue.extend([p for p in page.links if p not in self.results])
+        return self.results.values()
         # TODO: Store page data in database
 
 class Page(object):
@@ -88,8 +89,8 @@ def _contains_jp(texts):
                 return True
     return False
 
-page = _parse_page('http://www.yahoo.co.jp')
-print page.__str__()
+#page = _parse_page('http://www.yahoo.co.jp')
+#print page.__str__()
 #print _contains_jp(page.text)
 
 
